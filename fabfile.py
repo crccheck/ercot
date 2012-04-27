@@ -32,18 +32,25 @@ def grab_files():
 
 
 @task
-def parse():
+def parse(days=None):
     import datetime
     import time
     from lxml.html import parse
     files = [os.path.join(DATA_DIR, f) for f in os.listdir(DATA_DIR) if f[-4:] == 'html']
     outfile = open("test.csv", "w")
-    for i, f in enumerate(files):
+    header_written = False
+    if days is not None:
+        start = datetime.datetime.now() - datetime.timedelta(days=int(days))
+    else:
+        start = datetime.datetime.utcfromtimestamp(0)
+    for f in files:
         try:
             doc = parse(open(f, "r"))
             timestamp = doc.xpath("//span[@class='labelValueClass']")[0].text
             timestamp = timestamp.split(" ", 2)[2]
             created = datetime.datetime.strptime(timestamp, "%b %d %Y %H:%M:%S %Z")
+            if created < start:
+                continue
             ctime = int(time.mktime(created.timetuple()))
             labels = [x.text for x in doc.xpath("//span[@class='labelValueClass']")[1:]]
             values = [x.text for x in doc.xpath("//span[@class='labelValueClassBold']")]
@@ -54,10 +61,10 @@ def parse():
         #import ipdb; ipdb.set_trace()
         #break
         # print f, ctime
-        if i == 0:
-            # header
+        if header_written is False:
             outfile.write("ctime,date," + ",".join(labels))
             outfile.write("\n")
+            header_written = True
         outfile.write(",".join([str(ctime), timestamp] + values))
         outfile.write("\n")
     outfile.close()
