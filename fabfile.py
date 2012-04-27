@@ -26,7 +26,7 @@ def grab_files():
             # download remote file
             get(REMOTE_DATA_FILE, local_file)
             # extract
-            local("tar -xzf %s" % local_file)
+            local("cd %s && tar -xzf %s" % (DATA_DIR, REMOTE_DATA_FILE))
             # delete compressed file
             local("mv -f %s /tmp" % local_file)
 
