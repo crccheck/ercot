@@ -29,3 +29,31 @@ def grab_files():
             local("tar -xzf %s" % local_file)
             # delete compressed file
             local("mv -f %s /tmp" % local_file)
+
+
+@task
+def parse():
+    import datetime
+    import time
+    from lxml.html import parse
+    files = [os.path.join(DATA_DIR, f) for f in os.listdir(DATA_DIR) if f[-4:] == 'html']
+    outfile = open("test.csv", "w")
+    for f in files:
+        try:
+            doc = parse(open(f, "r"))
+            timestamp = doc.xpath("//span[@class='labelValueClass']")[0].text
+            timestamp = timestamp.split(" ", 2)[2]
+            created = datetime.datetime.strptime(timestamp, "%b %d %Y %H:%M:%S %Z")
+            ctime = int(time.mktime(created.timetuple()))
+            values = doc.xpath("//span[@class='labelValueClassBold']")
+            demand = values[2].text
+            capacity = values[3].text
+            wind = values[4].text
+            # TODO delete file after parsing
+        except AssertionError:
+            continue
+        # print f, ctime
+        # print timestamp, demand, capacity, wind
+        outfile.write(", ".join((str(ctime), timestamp, demand, capacity, wind)))
+        outfile.write("\n")
+    outfile.close()
