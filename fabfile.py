@@ -38,22 +38,26 @@ def parse():
     from lxml.html import parse
     files = [os.path.join(DATA_DIR, f) for f in os.listdir(DATA_DIR) if f[-4:] == 'html']
     outfile = open("test.csv", "w")
-    for f in files:
+    for i, f in enumerate(files):
         try:
             doc = parse(open(f, "r"))
             timestamp = doc.xpath("//span[@class='labelValueClass']")[0].text
             timestamp = timestamp.split(" ", 2)[2]
             created = datetime.datetime.strptime(timestamp, "%b %d %Y %H:%M:%S %Z")
             ctime = int(time.mktime(created.timetuple()))
-            values = doc.xpath("//span[@class='labelValueClassBold']")
-            demand = values[2].text
-            capacity = values[3].text
-            wind = values[4].text
+            labels = [x.text for x in doc.xpath("//span[@class='labelValueClass']")[1:]]
+            values = [x.text for x in doc.xpath("//span[@class='labelValueClassBold']")]
+            data = zip(labels, values)
             # TODO delete file after parsing
         except AssertionError:
             continue
+        #import ipdb; ipdb.set_trace()
+        #break
         # print f, ctime
-        # print timestamp, demand, capacity, wind
-        outfile.write(", ".join((str(ctime), timestamp, demand, capacity, wind)))
+        if i == 0:
+            # header
+            outfile.write("ctime,date," + ",".join(labels))
+            outfile.write("\n")
+        outfile.write(",".join([str(ctime), timestamp] + values))
         outfile.write("\n")
     outfile.close()
