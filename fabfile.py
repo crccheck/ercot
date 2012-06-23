@@ -34,6 +34,7 @@ def grab_files():
 @task
 def parse(days=None):
     import datetime
+    from dateutil import parser
     import time
     from lxml.html import parse
     files = [os.path.join(DATA_DIR, f) for f in os.listdir(DATA_DIR) if f[-4:] == 'html']
@@ -48,7 +49,7 @@ def parse(days=None):
             doc = parse(open(f, "r"))
             timestamp = doc.xpath("//span[@class='labelValueClass']")[0].text
             timestamp = timestamp.split(" ", 2)[2]
-            created = datetime.datetime.strptime(timestamp, "%b %d %Y %H:%M:%S %Z")
+            created = parser.parse(timestamp)
             if created < start:
                 continue
             ctime = int(time.mktime(created.timetuple()))
