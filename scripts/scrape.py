@@ -11,6 +11,19 @@ import dataset
 DATA_DIR = "../download"
 
 
+def normalize_html(f):
+    """Extract data from a file."""
+    doc = parse(f)
+    timestamp_text = doc.xpath("//span[@class='labelValueClass']")[0].text
+    timestamp_text = timestamp_text.split(" ", 2)[2]
+    timestamp = parser.parse(timestamp_text)
+    labels = [x.text for x in doc.xpath("//span[@class='labelValueClass']")[1:]]
+    values = [x.text for x in doc.xpath("//span[@class='labelValueClassBold']")]
+    data = dict(zip(labels, values))
+    data['timestamp'] = timestamp
+    return data
+
+
 def main():
     logger = logging.getLogger(__name__)
     db = dataset.connect('sqlite:///test.db')
@@ -19,15 +32,8 @@ def main():
     files = glob(os.path.join(DATA_DIR, '*.html'))
     for f in files:
         try:
-            doc = parse(open(f, "r"))
-            timestamp_text = doc.xpath("//span[@class='labelValueClass']")[0].text
-            timestamp_text = timestamp_text.split(" ", 2)[2]
-            timestamp = parser.parse(timestamp_text)
-            ctime = int(time.mktime(timestamp.timetuple()))
-            labels = [x.text for x in doc.xpath("//span[@class='labelValueClass']")[1:]]
-            values = [x.text for x in doc.xpath("//span[@class='labelValueClassBold']")]
-            data = dict(zip(labels, values))
-            data['timestamp'] = timestamp
+            data = normalize_html(open(f, 'r'))
+            ctime = int(time.mktime(data['timestamp'].timetuple()))
             # TODO delete file after parsing
         except AssertionError as e:
             logger.error(e)
