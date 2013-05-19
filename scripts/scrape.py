@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 from glob import glob
 import os
 import time
@@ -19,13 +20,14 @@ def main():
     for f in files:
         try:
             doc = parse(open(f, "r"))
-            timestamp = doc.xpath("//span[@class='labelValueClass']")[0].text
-            timestamp = timestamp.split(" ", 2)[2]
-            created = parser.parse(timestamp)
-            ctime = int(time.mktime(created.timetuple()))
+            timestamp_text = doc.xpath("//span[@class='labelValueClass']")[0].text
+            timestamp_text = timestamp_text.split(" ", 2)[2]
+            timestamp = parser.parse(timestamp_text)
+            ctime = int(time.mktime(timestamp.timetuple()))
             labels = [x.text for x in doc.xpath("//span[@class='labelValueClass']")[1:]]
             values = [x.text for x in doc.xpath("//span[@class='labelValueClassBold']")]
             data = dict(zip(labels, values))
+            data['timestamp'] = timestamp
             # TODO delete file after parsing
         except AssertionError as e:
             logger.error(e)
