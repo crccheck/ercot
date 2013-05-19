@@ -1,3 +1,4 @@
+from glob import glob
 import datetime
 import os
 import time
@@ -9,7 +10,7 @@ DATA_DIR = "download"
 
 
 def main(days=None):
-    files = [os.path.join(DATA_DIR, f) for f in os.listdir(DATA_DIR) if f[-4:] == 'html']
+    files = glob(os.path.join(DATA_DIR, '*.html'))
     outfile = open("test.csv", "w")
     header_written = False
     if days is not None:
