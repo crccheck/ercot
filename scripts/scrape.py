@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 from glob import glob
 import os
+import sys
 import time
 import logging
 
@@ -35,7 +36,7 @@ def normalize_html(f):
 
 
 def process(store, files):
-    """Process all the files"""
+    """Process all the files."""
     for f in files:
         try:
             with open(f, 'r') as fh:
@@ -43,23 +44,41 @@ def process(store, files):
             ctime = int(time.mktime(data['timestamp'].timetuple()))
             # TODO delete file after parsing
         except AssertionError as e:
-            logger.error(e)
+            # malformed HTML
+            logger.error("{} {}".format(f, e))
             continue
         logger.info("{} {}".format(ctime, data))
-        # TODO allow a way to do insert_many
         store.upsert(data, ['timestamp'])
 
 
-def main():
+def batch_process(store, files, batch=False):
+    """Process all the files in batches."""
+    # TODO abstract common stuff with `process()`
+    for f in files:
+        try:
+            with open(f, 'r') as fh:
+                data = normalize_html(fh)
+        except AssertionError as e:
+            # malformed HTML
+            logger.error("{} {}".format(f, e))
+            continue
+        yield data
+
+
+def main(batch):
     # TODO abstract db stuff out of `main`
     db = dataset.connect('sqlite:///test.db')
     table = db['ercot_realtime']
     table.create_index(['timestamp'])  # TODO make this UNIQUE
 
     files = glob(os.path.join(DATA_DIR, '*.html'))
-    process(table, files)
+    if batch:
+        table.insert_many(batch_process(table, files, batch))
+    else:
+        process(table, files)
 
 
 logger = logging.getLogger(__name__)
 if __name__ == "__main__":
-    main()
+    batch = '--initial' in sys.argv
+    main(batch)
