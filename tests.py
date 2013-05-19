@@ -1,6 +1,8 @@
 import datetime
 import unittest
 
+import dataset
+
 from scripts import scrape
 
 
@@ -34,3 +36,23 @@ class TestScraper(unittest.TestCase):
         with open('fixtures/test_download.html', 'r') as f:
             data = scrape.normalize_html(f)
             self.assertEqual(data, control)
+
+
+class DBTestCase(unittest.TestCase):
+    def setUp(self):
+        super(DBTestCase, self).setUp()
+        db = dataset.connect('sqlite:///:memory:')
+        self.table = db['test']
+
+    def tearDown(self):
+        super(DBTestCase, self).tearDown()
+        self.table.drop()
+
+    def test_wont_duplicate_data(self):
+        # TODO `upsert` is just manually copied, actually test a function
+        with open('fixtures/test_download.html', 'r') as f:
+            data = scrape.normalize_html(f)
+            self.table.upsert(data, ['timestamp'])
+            self.assertEqual(len(list(self.table.all())), 1)
+            self.table.upsert(data, ['timestamp'])
+            self.assertEqual(len(list(self.table.all())), 1)

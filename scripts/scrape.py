@@ -49,7 +49,7 @@ def main():
             logger.error(e)
             continue
         logger.info("{} {}".format(ctime, data))
-        table.insert(data)
+        table.upsert(data, ['timestamp'])
 
 
 if __name__ == "__main__":
