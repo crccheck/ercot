@@ -31,6 +31,7 @@ def grab_files():
             local("mv -f %s /tmp" % local_file)
 
 
+# DEPRECATED
 @task
 def parse(days=None):
     import datetime
