@@ -9,6 +9,16 @@ from lxml.html import parse
 import dataset
 
 DATA_DIR = "../download"
+FLOAT_KEYS = ('Current Frequency', 'Instantaneous Time Error', )
+
+
+def guess_type(data_tuple):
+    """Cast string data into number types (int or float)."""
+    for key, value in data_tuple:
+        if key in FLOAT_KEYS:
+            yield key, float(value)
+        else:
+            yield key, int(value)
 
 
 def normalize_html(f):
@@ -19,7 +29,7 @@ def normalize_html(f):
     timestamp = parser.parse(timestamp_text)
     labels = [x.text for x in doc.xpath("//span[@class='labelValueClass']")[1:]]
     values = [x.text for x in doc.xpath("//span[@class='labelValueClassBold']")]
-    data = dict(zip(labels, values))
+    data = dict(guess_type(zip(labels, values)))
     data['timestamp'] = timestamp
     return data
 
