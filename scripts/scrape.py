@@ -34,17 +34,12 @@ def normalize_html(f):
     return data
 
 
-def main():
-    logger = logging.getLogger(__name__)
-    # TODO abstract db stuff out of `main`
-    db = dataset.connect('sqlite:///test.db')
-    table = db['ercot_realtime']
-    table.create_index(['timestamp'])  # TODO make this UNIQUE
-
-    files = glob(os.path.join(DATA_DIR, '*.html'))
+def process(store, files):
+    """Process all the files"""
     for f in files:
         try:
-            data = normalize_html(open(f, 'r'))
+            with open(f, 'r') as fh:
+                data = normalize_html(fh)
             ctime = int(time.mktime(data['timestamp'].timetuple()))
             # TODO delete file after parsing
         except AssertionError as e:
@@ -52,8 +47,19 @@ def main():
             continue
         logger.info("{} {}".format(ctime, data))
         # TODO allow a way to do insert_many
-        table.upsert(data, ['timestamp'])
+        store.upsert(data, ['timestamp'])
 
 
+def main():
+    # TODO abstract db stuff out of `main`
+    db = dataset.connect('sqlite:///test.db')
+    table = db['ercot_realtime']
+    table.create_index(['timestamp'])  # TODO make this UNIQUE
+
+    files = glob(os.path.join(DATA_DIR, '*.html'))
+    process(table, files)
+
+
+logger = logging.getLogger(__name__)
 if __name__ == "__main__":
     main()
