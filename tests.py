@@ -42,7 +42,9 @@ class DBTestCase(unittest.TestCase):
     def setUp(self):
         super(DBTestCase, self).setUp()
         db = dataset.connect('sqlite:///:memory:')
-        self.table = db['test']
+        table = db['test']
+        table.create_index(['timestamp'])
+        self.table = table
 
     def tearDown(self):
         super(DBTestCase, self).tearDown()

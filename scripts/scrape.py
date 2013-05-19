@@ -36,8 +36,10 @@ def normalize_html(f):
 
 def main():
     logger = logging.getLogger(__name__)
+    # TODO abstract db stuff out of `main`
     db = dataset.connect('sqlite:///test.db')
     table = db['ercot_realtime']
+    table.create_index(['timestamp'])  # TODO make this UNIQUE
 
     files = glob(os.path.join(DATA_DIR, '*.html'))
     for f in files:
@@ -49,6 +51,7 @@ def main():
             logger.error(e)
             continue
         logger.info("{} {}".format(ctime, data))
+        # TODO allow a way to do insert_many
         table.upsert(data, ['timestamp'])
 
 
