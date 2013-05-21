@@ -18,20 +18,19 @@ class TestScraper(unittest.TestCase):
         self.assertEqual(type(output['a']), int)
         self.assertEqual(type(output[should_be_float]), float)
 
-
     def test_normalize_works(self):
         control = {
             'Actual System Demand': 31579,
             'Current Frequency': 59.962,
-            'DC_E (East)': 0,
-            'DC_L (Laredo VFT)': 100,
-            'DC_N (North)': 25,
-            'DC_R (Railroad)': 151,
-            'DC_S (Eagle Pass)': 0,
+            'DC_E': 0,
+            'DC_L': 100,
+            'DC_N': 25,
+            'DC_R': 151,
+            'DC_S': 0,
             'Instantaneous Time Error': -2.562,
             'timestamp': datetime.datetime(2012, 3, 29, 23, 9, 50),
-            'Total System Capacity (not including Ancillary Services)': 38322,
-            'Total Wind Output (hourly average)': 5973,
+            'Total System Capacity': 38322,
+            'Total Wind Output': 5973,
         }
         with open('fixtures/test_download.html', 'r') as f:
             data = scrape.normalize_html(f)

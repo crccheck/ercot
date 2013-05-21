@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 from glob import glob
 import os
+import re
 import sys
 import time
 import logging
@@ -11,6 +12,10 @@ import dataset
 
 DATA_DIR = "../download"
 FLOAT_KEYS = ('Current Frequency', 'Instantaneous Time Error', )
+DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite:///test.db')
+
+
+pattern = re.compile(r'\s\(.+\)')
 
 
 def guess_type(data_tuple):
@@ -30,6 +35,7 @@ def normalize_html(f):
     timestamp = parser.parse(timestamp_text)
     labels = [x.text for x in doc.xpath("//span[@class='labelValueClass']")[1:]]
     values = [x.text for x in doc.xpath("//span[@class='labelValueClassBold']")]
+    labels = [pattern.sub('', x) for x in labels]
     data = dict(guess_type(zip(labels, values)))
     data['timestamp'] = timestamp
     return data
@@ -67,7 +73,7 @@ def batch_process(store, files, batch=False):
 
 def main(batch):
     # TODO abstract db stuff out of `main`
-    db = dataset.connect('sqlite:///test.db')
+    db = dataset.connect(DATABASE_URL)
     table = db['ercot_realtime']
     table.create_index(['timestamp'])  # TODO make this UNIQUE
 
