@@ -3,3 +3,4 @@ lxml
 python-dateutil
 dataset==0.3
 nose==1.3.0
+psycopg2==2.5
