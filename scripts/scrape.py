@@ -11,6 +11,7 @@ import dataset
 
 DATA_DIR = "../download"
 FLOAT_KEYS = ('Current Frequency', 'Instantaneous Time Error', )
+DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite:///test.db')
 
 
 def guess_type(data_tuple):
@@ -67,7 +68,7 @@ def batch_process(store, files, batch=False):
 
 def main(batch):
     # TODO abstract db stuff out of `main`
-    db = dataset.connect('sqlite:///test.db')
+    db = dataset.connect(DATABASE_URL)
     table = db['ercot_realtime']
     table.create_index(['timestamp'])  # TODO make this UNIQUE
 
