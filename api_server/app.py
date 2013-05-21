@@ -57,6 +57,27 @@ def hello_world():
     )
 
 
+# This is slow mostly because I suck at this
+@app.route('/slow/')
+@support_jsonp
+def goodbye_cruel_world():
+    import datetime
+    import json
+    # http://stackoverflow.com/questions/455580/json-datetime-between-python-and-javascript
+    dthandler = lambda obj: obj.isoformat(sep=' ') if isinstance(obj, datetime.datetime) else None
+    cur = conn.cursor()
+    n_results = 86400 / 10
+    cur.execute("""
+        SELECT timestamp, "Actual System Demand", "Total System Capacity"
+        FROM ercot_realtime ORDER BY timestamp LIMIT %s
+        """, (n_results, ))
+    return app.response_class(
+        json.dumps([dict(zip(('timestamp', 'Actual System Demand', 'Total System Capacity'), x)) for x in cur],
+                default=dthandler),
+        mimetype="application/json",
+    )
+
+
 if __name__ == '__main__':
     app.run(
         host='0.0.0.0',
