@@ -1,6 +1,7 @@
 from functools import wraps
 
 from flask import Flask, request
+import dj_database_url
 import psycopg2
 
 from middlewares import Gzipper
@@ -8,7 +9,17 @@ from middlewares import Gzipper
 
 app = Flask(__name__)
 app.wsgi_app = Gzipper(app.wsgi_app)
-conn = psycopg2.connect("dbname='ercot' ")
+config = dj_database_url.config(default="postgres:///ercot")
+config_map = dict(
+    NAME='database',
+    USER='user',
+    PASSWORD='password',
+    HOST='host',
+    PORT='port',
+)
+connect_args = dict([(config_map[k], v) for k, v in config.items()
+        if k in config_map])
+conn = psycopg2.connect(**connect_args)
 
 
 # https://gist.github.com/aisipos/1094140
