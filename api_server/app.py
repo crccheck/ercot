@@ -1,11 +1,13 @@
 from functools import wraps
 
 from flask import Flask, request
-app = Flask(__name__)
-
 import psycopg2
 
+from middlewares import Gzipper
 
+
+app = Flask(__name__)
+app.wsgi_app = Gzipper(app.wsgi_app)
 conn = psycopg2.connect("dbname='ercot' ")
 
 
