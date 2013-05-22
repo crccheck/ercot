@@ -10,6 +10,7 @@ from dateutil import parser
 from lxml.html import parse
 import dataset
 
+URL = 'http://www.ercot.com/content/cdr/html/real_time_system_conditions.html'
 DATA_DIR = "../download"
 FLOAT_KEYS = ('Current Frequency', 'Instantaneous Time Error', )
 DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite:///test.db')
@@ -71,6 +72,12 @@ def batch_process(store, files, batch=False):
         yield data
 
 
+def get_from_website():
+    # `parse` will also take a url (http only, no https)
+    data = normalize_html(URL)
+    return data
+
+
 def main(batch):
     # TODO abstract db stuff out of `main`
     db = dataset.connect(DATABASE_URL)
@@ -87,4 +94,7 @@ def main(batch):
 logger = logging.getLogger(__name__)
 if __name__ == "__main__":
     batch = '--initial' in sys.argv
-    main(batch)
+    if '--now' in sys.argv:
+        print get_from_website()
+    else:
+        main(batch)
