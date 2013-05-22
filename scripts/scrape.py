@@ -1,4 +1,6 @@
 #! /usr/bin/env python
+from __future__ import print_function
+
 from glob import glob
 import os
 import re
@@ -104,6 +106,6 @@ logger = logging.getLogger(__name__)
 if __name__ == "__main__":
     batch = '--initial' in sys.argv
     if '--now' in sys.argv:
-        print get_from_website()
+        print(get_from_website())
     else:
         main(batch)
