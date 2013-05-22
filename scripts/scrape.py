@@ -2,11 +2,13 @@
 from __future__ import print_function
 
 from glob import glob
+import datetime
+import json
+import logging
 import os
 import re
 import sys
 import time
-import logging
 
 from dateutil import parser
 from lxml.html import parse
@@ -102,10 +104,18 @@ def main(batch):
         process(table, files)
 
 
+def dumps(data):
+    """JSON encode junk"""
+    # http://stackoverflow.com/questions/455580/json-datetime-between-python-and-javascript
+    dthandler = (lambda obj: obj.isoformat(sep=' ')
+            if isinstance(obj, datetime.datetime) else None)
+    return json.dumps(data, default=dthandler),
+
+
 logger = logging.getLogger(__name__)
 if __name__ == "__main__":
     batch = '--initial' in sys.argv
     if '--now' in sys.argv:
-        print(get_from_website())
+        print(dumps(get_from_website()))
     else:
         main(batch)
