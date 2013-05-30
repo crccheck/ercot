@@ -111,7 +111,6 @@ class Pool(object):
     def execute(self, operation, parameters=(), callback=None):
         """http://initd.org/psycopg/docs/cursor.html#cursor.execute
         """
-        print operation
         self._new_cursor('execute', (operation, parameters), callback)
 
     def executemany(self, operation, parameters=None, callback=None):
