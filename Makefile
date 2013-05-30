@@ -14,16 +14,20 @@ reports:
 	mkdir -p reports
 
 flask:
-	python -m api_flask
+	python -m api_flask &
 
 ab_flask: reports
 	ab -n 100 http://localhost:8000/ > reports/flask.log
 
 tornado:
-	python -m api_tornado
+	echo $$(cat Procfile)
 
 ab_tornado: reports
-	ab -n 100 -c 2 http://localhost:8000/ > reports/tornado.log
+	python -m api_tornado & echo $$! > tornado.pid
+	sleep 2
+	ab -n 100 http://localhost:8000/ > reports/tornado.log
+	kill -TERM -$$(cat tornado.pid)
+	rm tornado.pid
 
 
 .PHONY: clean test bench
