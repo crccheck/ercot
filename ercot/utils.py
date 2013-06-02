@@ -4,8 +4,10 @@ from dateutil import parser
 from lxml.html import parse
 
 
+# find text (in parentheses):
+PARENS_TEXT = re.compile(r'\s\(.+\)')
+# these columns are FLOAT:
 FLOAT_KEYS = ('current_frequency', 'instantaneous_time_error', )
-pattern = re.compile(r'\s\(.+\)')
 
 
 def guess_type(data_tuple):
@@ -18,14 +20,14 @@ def guess_type(data_tuple):
 
 
 def normalize_html(f):
-    """Extract data from a file."""
+    """Extract our data from an html file."""
     doc = parse(f)
     timestamp_text = doc.xpath("//span[@class='labelValueClass']")[0].text
     timestamp_text = timestamp_text.split(" ", 2)[2]
     timestamp = parser.parse(timestamp_text)
     labels = [x.text for x in doc.xpath("//span[@class='labelValueClass']")[1:]]
     values = [x.text for x in doc.xpath("//span[@class='labelValueClassBold']")]
-    labels = [pattern.sub('', x) for x in labels]  # strip parentheticals
+    labels = [PARENS_TEXT.sub('', x) for x in labels]  # strip parentheticals
     labels = [x.lower().replace(' ', '_') for x in labels]  # make_normal_lookin
     data = dict(guess_type(zip(labels, values)))
     data['timestamp'] = timestamp
