@@ -12,7 +12,18 @@ from ercot.utils import dthandler
 
 
 class BaseResource(tornado.web.RequestHandler):
-    def initialize(self, metadata=None):
+    columns = (
+        'timestamp',
+        'actual_system_demand',
+        'total_system_capacity',
+    )
+    sql = """
+        SELECT %s
+        FROM ercot_realtime ORDER BY timestamp LIMIT 8640
+    """ % ', '.join(columns)
+
+    def initialize(self, db, metadata=None):
+        self.db = db
         self.metadata = metadata
 
     def get(self):
@@ -37,20 +48,6 @@ class BaseResource(tornado.web.RequestHandler):
 
 
 class ErcotResource(BaseResource):
-    columns = (
-        'timestamp',
-        'actual_system_demand',
-        'total_system_capacity',
-    )
-    sql = """
-        SELECT %s
-        FROM ercot_realtime ORDER BY timestamp LIMIT 8640
-    """ % ', '.join(columns)
-
-    def initialize(self, metadata, db):
-        super(ErcotResource, self).initialize(metadata=metadata)
-        self.db = db
-
     @tornado.web.asynchronous
     def get(self):
         self.db.execute("""
@@ -68,7 +65,7 @@ class ErcotResource(BaseResource):
 # TODO synchronous request resource example
 
 
-class Ercot2Resource(ErcotResource):
+class Ercot2Resource(BaseResource):
     @tornado.web.asynchronous
     def get(self):
         self.db.execute(self.sql, callback=self.on_result)
@@ -82,7 +79,7 @@ class Ercot2Resource(ErcotResource):
         self.finish()
 
 
-class Ercot2bResource(ErcotResource):
+class Ercot2bResource(BaseResource):
     @tornado.web.asynchronous
     def get(self):
         self.db.execute(self.sql,
@@ -97,7 +94,7 @@ class Ercot2bResource(ErcotResource):
         self.finish()
 
 
-class Ercot3Resource(ErcotResource):
+class Ercot3Resource(BaseResource):
     @tornado.web.asynchronous
     def get(self):
         self.db.execute(self.sql, callback=self.on_result)
