@@ -3,18 +3,18 @@ import unittest
 
 import dataset
 
-from scripts import scrape
+from ercot import utils
 
 
 class TestScraper(unittest.TestCase):
     def test_guess_type_works(self):
-        should_be_float = scrape.FLOAT_KEYS[0]
+        should_be_float = utils.FLOAT_KEYS[0]
         input = (
             ('a', '1'),
             ('b', '2'),
             (should_be_float, '2'),
         )
-        output = dict(scrape.guess_type(input))
+        output = dict(utils.guess_type(input))
         self.assertEqual(type(output['a']), int)
         self.assertEqual(type(output[should_be_float]), float)
 
@@ -33,7 +33,7 @@ class TestScraper(unittest.TestCase):
             'timestamp': datetime.datetime(2012, 3, 29, 23, 9, 50),
         }
         with open('fixtures/test_download.html', 'r') as f:
-            data = scrape.normalize_html(f)
+            data = utils.normalize_html(f)
             self.assertEqual(data, control)
 
 
@@ -52,7 +52,7 @@ class DBTestCase(unittest.TestCase):
     def test_wont_duplicate_data(self):
         # TODO `upsert` is just manually copied, actually test a function
         with open('fixtures/test_download.html', 'r') as f:
-            data = scrape.normalize_html(f)
+            data = utils.normalize_html(f)
             self.table.upsert(data, ['timestamp'])
             self.assertEqual(len(list(self.table.all())), 1)
             self.table.upsert(data, ['timestamp'])
