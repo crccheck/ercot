@@ -13,6 +13,7 @@ sleep 1
 
 mkdir -p ../metrics
 ab -n 1000 http://localhost:8000/ > ../metrics/tornado.log
+ab -n 1000 http://localhost:8000/2/ > ../metrics/tornado_json.log
 ab -n 1000 -c 2 http://localhost:8000/ > ../metrics/tornadox2.log
 # options:
 #
