@@ -21,12 +21,17 @@ trap "kill $PID; echo bye $PID" EXIT
 # give time for the server to get up
 sleep 1
 
+
+bench() {
+  ab $AB_OPTIONS http://localhost:$PORT$1 >> $OUTFILE
+}
+
 cp ../metrics/out_head_template.html $OUTFILE
-ab $AB_OPTIONS http://localhost:$PORT/pg/ >> $OUTFILE
-ab $AB_OPTIONS http://localhost:$PORT/py/ >> $OUTFILE
-ab $AB_OPTIONS http://localhost:$PORT/psy/ >> $OUTFILE
-ab $AB_OPTIONS http://localhost:$PORT/array/ >> $OUTFILE
-ab $AB_OPTIONS http://localhost:$PORT/array-sync/ >> $OUTFILE
+bench /pg/
+bench /py/
+bench /psy/
+bench /array/
+bench /array-sync/
 echo '</section></body></html>' >> $OUTFILE
 
 # kill server, run in a subprocess so we can suppress "Terminated" message
