@@ -1,6 +1,8 @@
-import sqlalchemy
+import os
+
 import momoko
 import simplejson as json
+import sqlalchemy
 import tornado.httpserver
 import tornado.ioloop
 import tornado.web
@@ -47,7 +49,7 @@ class ErcotResource(Resource):
     def get(self):
         self.db.execute("""
         SELECT array_to_json(array_agg(row_to_json(t)))::text FROM (
-            SELECT timestamp, "Actual System Demand", "Total System Capacity"
+            SELECT timestamp, "actual_system_demand", "total_system_capacity"
             FROM ercot_realtime ORDER BY timestamp LIMIT 8640
         ) t;
         """, callback=self.on_result)
@@ -59,7 +61,8 @@ class ErcotResource(Resource):
 
 
 def get_ercot_metadata():
-    engine = sqlalchemy.create_engine('postgres:///ercot')
+    engine = sqlalchemy.create_engine(
+            os.environ.get('DATABASE_URL', 'postgres:///ercot'))
     metadata = sqlalchemy.MetaData(bind=engine)
     metadata.reflect(only=[
         'ercot_realtime',
