@@ -38,18 +38,6 @@ class Resource(tornado.web.RequestHandler):
             "Content-Type", "application/javascript; charset=UTF-8")
 
 
-class Index(Resource):
-    def get(self):
-        self.write('Hello, API')
-
-
-class ContributorResource(Resource):
-    def get_object_list(self):
-        contributors = self.metadata.tables['campaign_finance_contributor']
-        query = contributors.select().limit(20)
-        return list(dict(o) for o in query.execute())
-
-
 class ErcotResource(Resource):
     def initialize(self, metadata, db):
         super(ErcotResource, self).initialize(metadata=metadata)
@@ -70,18 +58,6 @@ class ErcotResource(Resource):
         self.finish()
 
 
-def get_mysql_metadata():
-    engine = sqlalchemy.create_engine('mysql://root@localhost/tribune_dev')
-    metadata = sqlalchemy.MetaData(bind=engine)
-    metadata.reflect(only=[
-        'campaign_finance_contributor',
-        'campaign_finance_contribution',
-        'campaign_finance_filer',
-    ])
-
-    return metadata
-
-
 def get_ercot_metadata():
     engine = sqlalchemy.create_engine('postgres:///ercot')
     metadata = sqlalchemy.MetaData(bind=engine)
@@ -94,19 +70,15 @@ def get_ercot_metadata():
 
 def main():
     # Connect to databases
-    mysql_metadata = get_mysql_metadata()
     ercot_metadata = get_ercot_metadata()
     ercot_db = momoko.Pool(dsn='dbname=ercot', size=4)
 
     # Build handler kwargs
-    mysql_kwargs = dict(metadata=mysql_metadata)
     ercot_kwargs = dict(metadata=ercot_metadata, db=ercot_db)
 
     # Configure application
     app = tornado.web.Application([
-        (r'/v1/', Index),
-        (r'/v1/contributors/', ContributorResource, mysql_kwargs),
-        (r'/tribclips/ercot/', ErcotResource, ercot_kwargs),
+        (r'/', ErcotResource, ercot_kwargs),
     ], debug=False)
 
     # Start server
