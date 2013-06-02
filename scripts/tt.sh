@@ -12,10 +12,11 @@ trap "kill $PID; echo bye $PID" EXIT
 sleep 1
 
 mkdir -p ../metrics
-ab -n 1000 http://localhost:8000/ > ../metrics/tornado.log
-ab -n 1000 http://localhost:8000/2/ > ../metrics/tornado_json.log
-ab -n 1000 http://localhost:8000/3/ > ../metrics/tornado_arrayjson.log
-ab -n 1000 -c 2 http://localhost:8000/ > ../metrics/tornadox2.log
+ab -n 100 http://localhost:8000/ > ../metrics/tornado.log
+ab -n 100 http://localhost:8000/2/ > ../metrics/tornado_json.log
+ab -n 100 http://localhost:8000/2b/ > ../metrics/tornado_json2b.log
+ab -n 100 http://localhost:8000/3/ > ../metrics/tornado_arrayjson.log
+# ab -n 100 -c 2 http://localhost:8000/ > ../metrics/tornadox2.log
 # options:
 #
 #   -n requests

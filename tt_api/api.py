@@ -2,6 +2,7 @@ import json
 import os
 
 import momoko
+import psycopg2
 import sqlalchemy
 import tornado.httpserver
 import tornado.ioloop
@@ -76,6 +77,23 @@ class Ercot2Resource(ErcotResource):
         self.finish()
 
 
+class Ercot2bResource(ErcotResource):
+    @tornado.web.asynchronous
+    def get(self):
+        self.db.execute("""
+            SELECT timestamp, actual_system_demand, total_system_capacity
+            FROM ercot_realtime ORDER BY timestamp LIMIT 8640;
+        """, cursor_factory=psycopg2.extras.RealDictCursor, callback=self.on_result)
+        # DictCursor returns dicts with no keys for some reason
+
+    def on_result(self, cursor, error):
+        import datetime
+        dthandler = lambda obj: obj.isoformat(sep=' ') if isinstance(obj, datetime.datetime) else None
+        content = json.dumps(list(cursor), default=dthandler)
+        self.write_response(content)
+        self.finish()
+
+
 class Ercot3Resource(ErcotResource):
     @tornado.web.asynchronous
     def get(self):
@@ -115,6 +133,7 @@ def main():
     app = tornado.web.Application([
         (r'/', ErcotResource, ercot_kwargs),
         (r'/2/', Ercot2Resource, ercot_kwargs),
+        (r'/2b/', Ercot2bResource, ercot_kwargs),
         (r'/3/', Ercot3Resource, ercot_kwargs),
     ], debug=True)
 
