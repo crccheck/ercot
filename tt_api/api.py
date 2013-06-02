@@ -9,7 +9,7 @@ import tornado.ioloop
 import tornado.options
 import tornado.web
 
-from ercot.utils import dthandler
+from ercot.utils import dthandler, get_pg_connect_kwargs
 
 
 class BaseResource(tornado.web.RequestHandler):
@@ -64,9 +64,6 @@ class ErcotPGResource(BaseResource):
         self.finish()
 
 
-# TODO synchronous request resource example
-
-
 class ErcotPyResource(BaseResource):
     """Makes Python do the JSON."""
     @tornado.web.asynchronous
@@ -110,6 +107,15 @@ class ErcotArrayResource(BaseResource):
         self.finish()
 
 
+class ErcotArraySyncResource(BaseResource):
+    """Makes Python do the JSON, Return arrays instead of dicts. Synchronous."""
+    def get(self):
+        cursor = self.db.cursor()
+        cursor.execute(self.sql)
+        content = json.dumps(list(cursor), default=dthandler)
+        self.write_response(content)
+
+
 def get_ercot_metadata():
     engine = sqlalchemy.create_engine(
             os.environ.get('DATABASE_URL', 'postgres:///ercot'))
@@ -128,6 +134,7 @@ def main():
     # Connect to databases
     ercot_metadata = get_ercot_metadata()
     ercot_db = momoko.Pool(dsn='dbname=ercot', size=4)
+    db_conn = psycopg2.connect(**get_pg_connect_kwargs('postgres:///ercot'))
 
     # Build handler kwargs
     ercot_kwargs = dict(metadata=ercot_metadata, db=ercot_db)
@@ -138,6 +145,7 @@ def main():
         (r'/py/', ErcotPyResource, ercot_kwargs),
         (r'/psy/', ErcotPsyResource, ercot_kwargs),
         (r'/array/', ErcotArrayResource, ercot_kwargs),
+        (r'/array-sync/', ErcotArraySyncResource, dict(db=db_conn)),
     ], debug=True)
 
     # Start server

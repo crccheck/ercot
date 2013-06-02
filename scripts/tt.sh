@@ -18,6 +18,7 @@ ab -n 100 http://localhost:$PORT/pg/ > ../metrics/tornado_pg.log
 ab -n 100 http://localhost:$PORT/py/ > ../metrics/tornado_py.log
 ab -n 100 http://localhost:$PORT/psy/ > ../metrics/tornado_psy.log
 ab -n 100 http://localhost:$PORT/array/ > ../metrics/tornado_array.log
+ab -n 100 http://localhost:$PORT/array-sync/ > ../metrics/tornado_arraysync.log
 # ab -n 100 -c 2 http://localhost:$PORT/ > ../metrics/tornadox2.log
 # options:
 #
