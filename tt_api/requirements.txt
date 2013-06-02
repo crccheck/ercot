@@ -1,0 +1,6 @@
+SQLAlchemy==0.8.1
+psycopg2==2.5
+simplejson==3.3.0
+tornado==3.0.1
+wsgiref==0.1.2
+Momoko==1.0.0
