@@ -3,9 +3,39 @@
 <head>
   <title>Apache Bench Results</title>
   <style>
+    p, tr.server {
+      display: none;
+    }
   </style>
-  <script src="http://ajax.googleapis.com/ajax/libs/jquery/2/jquery.min.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.1/jquery.min.js"></script>
   <script>
+    $(function(){
+      $('p').hide();
+
+      // var
+      $tables = $('table').not('.main table');
+      $reportTable = $('.main table');
+      // setup report table
+      $el = $tables.first().find('th[colspan=2]').clone().appendTo($reportTable);
+      // wrap each TH in a TR with a class name based on its contents
+      $el.wrap(function(){
+        var className = this.innerHTML.split(' ')[0].toLowerCase();
+        return '<tr class="' +className + '"/>';
+      });
+
+      $tables.each(function(){
+        var $table = $(this);
+        $table.find('td[colspan=2]').each(function(idx, td){
+          var $td = $(td);
+          $el.eq(idx).parent().append($td.clone());
+          $td.parent().hide();  // cleanup
+        });
+      });
+    });
   </script>
 </head>
 <body>
+  <section class="main">
+    <table>
+    </table>
+  </section>
