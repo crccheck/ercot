@@ -1,5 +1,12 @@
 *.csv
 *.db
+*.pid
 *.pyc
 *.tgz
-download/*
+download/
+metrics/
+
+
+# IDE
+*.sublime-*
+.codeintel

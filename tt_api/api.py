@@ -78,7 +78,7 @@ def main():
 
     # Start server
     server = tornado.httpserver.HTTPServer(app)
-    server.bind(8888)
+    server.bind(8000)
     server.start(num_processes=1)
     tornado.ioloop.IOLoop.instance().start()
 
