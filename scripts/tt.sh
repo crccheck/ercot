@@ -29,12 +29,12 @@ bench() {
     ab $AB_OPTIONS -w http://localhost:$PORT$1 >> $OUTFILE
     # can't do -w and -g at the same time
     ab $AB_OPTIONS -g ../metrics/$2.tsv http://localhost:$PORT$1 > /dev/null
-    plots="$plots '$2.tsv' using 9 smooth sbezier with lines title '$3',"
+    plots="$plots '$2.tsv' using 9 with lines title '$3' lw 3,"
 }
 
 cp ../metrics/out_head_template.html $OUTFILE
 bench /psy/ psy "json.dumps(RealDictCursor)"
-bench /pg/ pg Postgres "array_to_json"
+bench /pg/ pg "Postgres array_to_json"
 bench /py/ py "json.dumps(dict)"
 bench /array/ array "json.dumps(list) async"
 bench /array-sync/ array2 "json.dumps(list) sync"
@@ -45,9 +45,11 @@ cd ../metrics
 
 gnuplot -e "set terminal png;
 set output \"out.png\";
+set title \"ab $AB_OPTIONS\";
 set key top left;
 set grid y;
 set ylabel \"response time (ms)\";
+set xlabel \"request\";
 plot ${plots%?};"
 
 
