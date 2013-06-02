@@ -6,6 +6,7 @@ import psycopg2
 import sqlalchemy
 import tornado.httpserver
 import tornado.ioloop
+import tornado.options
 import tornado.web
 
 from ercot.utils import dthandler
@@ -121,6 +122,9 @@ def get_ercot_metadata():
 
 
 def main():
+    tornado.options.define('port', default=8000, type=int, help="Listening Port")
+    tornado.options.parse_command_line()
+
     # Connect to databases
     ercot_metadata = get_ercot_metadata()
     ercot_db = momoko.Pool(dsn='dbname=ercot', size=4)
@@ -138,7 +142,7 @@ def main():
 
     # Start server
     server = tornado.httpserver.HTTPServer(app)
-    server.bind(8000)
+    server.bind(tornado.options.options.port)
     server.start(num_processes=1)
     tornado.ioloop.IOLoop.instance().start()
 

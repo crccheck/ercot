@@ -1,7 +1,9 @@
 set -e
 
+PORT=8008
+
 # start server in the background
-python ../tt_api/api.py &
+python ../tt_api/api.py --port=$PORT --logging=none &
 PID=$!
 echo pid: $PID
 
@@ -12,11 +14,11 @@ trap "kill $PID; echo bye $PID" EXIT
 sleep 1
 
 mkdir -p ../metrics
-ab -n 100 http://localhost:8000/pg/ > ../metrics/tornado_pg.log
-ab -n 100 http://localhost:8000/py/ > ../metrics/tornado_py.log
-ab -n 100 http://localhost:8000/psy/ > ../metrics/tornado_psy.log
-ab -n 100 http://localhost:8000/array/ > ../metrics/tornado_array.log
-# ab -n 100 -c 2 http://localhost:8000/ > ../metrics/tornadox2.log
+ab -n 100 http://localhost:$PORT/pg/ > ../metrics/tornado_pg.log
+ab -n 100 http://localhost:$PORT/py/ > ../metrics/tornado_py.log
+ab -n 100 http://localhost:$PORT/psy/ > ../metrics/tornado_psy.log
+ab -n 100 http://localhost:$PORT/array/ > ../metrics/tornado_array.log
+# ab -n 100 -c 2 http://localhost:$PORT/ > ../metrics/tornadox2.log
 # options:
 #
 #   -n requests
