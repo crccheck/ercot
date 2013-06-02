@@ -76,6 +76,22 @@ class Ercot2Resource(ErcotResource):
         self.finish()
 
 
+class Ercot3Resource(ErcotResource):
+    @tornado.web.asynchronous
+    def get(self):
+        self.db.execute("""
+            SELECT timestamp, actual_system_demand, total_system_capacity
+            FROM ercot_realtime ORDER BY timestamp LIMIT 8640;
+        """, callback=self.on_result)
+
+    def on_result(self, cursor, error):
+        import datetime
+        dthandler = lambda obj: obj.isoformat(sep=' ') if isinstance(obj, datetime.datetime) else None
+        content = json.dumps(list(cursor), default=dthandler)
+        self.write_response(content)
+        self.finish()
+
+
 def get_ercot_metadata():
     engine = sqlalchemy.create_engine(
             os.environ.get('DATABASE_URL', 'postgres:///ercot'))
@@ -99,6 +115,7 @@ def main():
     app = tornado.web.Application([
         (r'/', ErcotResource, ercot_kwargs),
         (r'/2/', Ercot2Resource, ercot_kwargs),
+        (r'/3/', Ercot3Resource, ercot_kwargs),
     ], debug=True)
 
     # Start server
