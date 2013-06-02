@@ -16,7 +16,7 @@ import dataset
 
 URL = 'http://www.ercot.com/content/cdr/html/real_time_system_conditions.html'
 DATA_DIR = "../download"
-FLOAT_KEYS = ('Current Frequency', 'Instantaneous Time Error', )
+FLOAT_KEYS = ('current_frequency', 'instantaneous_time_error', )
 
 
 pattern = re.compile(r'\s\(.+\)')
@@ -39,7 +39,8 @@ def normalize_html(f):
     timestamp = parser.parse(timestamp_text)
     labels = [x.text for x in doc.xpath("//span[@class='labelValueClass']")[1:]]
     values = [x.text for x in doc.xpath("//span[@class='labelValueClassBold']")]
-    labels = [pattern.sub('', x) for x in labels]
+    labels = [pattern.sub('', x) for x in labels]  # strip parentheticals
+    labels = [x.lower().replace(' ', '_') for x in labels]  # make_normal_lookin
     data = dict(guess_type(zip(labels, values)))
     data['timestamp'] = timestamp
     return data
