@@ -5,6 +5,8 @@
 *.tgz
 download/
 metrics/*.log
+metrics/*.png
+metrics/*.tsv
 metrics/out.html
 
 
