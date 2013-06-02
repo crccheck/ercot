@@ -8,6 +8,8 @@ import tornado.httpserver
 import tornado.ioloop
 import tornado.web
 
+from ercot.utils import dthandler
+
 
 class BaseResource(tornado.web.RequestHandler):
     def initialize(self, metadata=None):
@@ -35,6 +37,16 @@ class BaseResource(tornado.web.RequestHandler):
 
 
 class ErcotResource(BaseResource):
+    columns = (
+        'timestamp',
+        'actual_system_demand',
+        'total_system_capacity',
+    )
+    sql = """
+        SELECT %s
+        FROM ercot_realtime ORDER BY timestamp LIMIT 8640
+    """ % ', '.join(columns)
+
     def initialize(self, metadata, db):
         super(ErcotResource, self).initialize(metadata=metadata)
         self.db = db
@@ -43,10 +55,9 @@ class ErcotResource(BaseResource):
     def get(self):
         self.db.execute("""
         SELECT array_to_json(array_agg(row_to_json(t)))::text FROM (
-            SELECT timestamp, "actual_system_demand", "total_system_capacity"
-            FROM ercot_realtime ORDER BY timestamp LIMIT 8640
+            %s
         ) t;
-        """, callback=self.on_result)
+        """ % self.sql, callback=self.on_result)
 
     def on_result(self, cursor, error):
         content = cursor.fetchone()[0]
@@ -54,24 +65,18 @@ class ErcotResource(BaseResource):
         self.finish()
 
 
-# TODO syncronous request resource example
+# TODO synchronous request resource example
 
 
 class Ercot2Resource(ErcotResource):
     @tornado.web.asynchronous
     def get(self):
-        self.db.execute("""
-            SELECT timestamp, actual_system_demand, total_system_capacity
-            FROM ercot_realtime ORDER BY timestamp LIMIT 8640;
-        """, callback=self.on_result)
+        self.db.execute(self.sql, callback=self.on_result)
 
     def on_result(self, cursor, error):
         def dictify(cursor):
-            # Too lazy to figure out how to use dictCursor just for this Resource
             for x in cursor:
-                yield dict(zip(('timestamp', 'actual_system_demand', 'total_system_capacity'), x))
-        import datetime
-        dthandler = lambda obj: obj.isoformat(sep=' ') if isinstance(obj, datetime.datetime) else None
+                yield dict(zip(self.columns, x))
         content = json.dumps(list(dictify(cursor)), default=dthandler)
         self.write_response(content)
         self.finish()
@@ -80,15 +85,13 @@ class Ercot2Resource(ErcotResource):
 class Ercot2bResource(ErcotResource):
     @tornado.web.asynchronous
     def get(self):
-        self.db.execute("""
-            SELECT timestamp, actual_system_demand, total_system_capacity
-            FROM ercot_realtime ORDER BY timestamp LIMIT 8640;
-        """, cursor_factory=psycopg2.extras.RealDictCursor, callback=self.on_result)
-        # DictCursor returns dicts with no keys for some reason
+        self.db.execute(self.sql,
+            # DictCursor returns dicts with no keys for some reason
+            cursor_factory=psycopg2.extras.RealDictCursor,
+            callback=self.on_result,
+        )
 
     def on_result(self, cursor, error):
-        import datetime
-        dthandler = lambda obj: obj.isoformat(sep=' ') if isinstance(obj, datetime.datetime) else None
         content = json.dumps(list(cursor), default=dthandler)
         self.write_response(content)
         self.finish()
@@ -97,14 +100,9 @@ class Ercot2bResource(ErcotResource):
 class Ercot3Resource(ErcotResource):
     @tornado.web.asynchronous
     def get(self):
-        self.db.execute("""
-            SELECT timestamp, actual_system_demand, total_system_capacity
-            FROM ercot_realtime ORDER BY timestamp LIMIT 8640;
-        """, callback=self.on_result)
+        self.db.execute(self.sql, callback=self.on_result)
 
     def on_result(self, cursor, error):
-        import datetime
-        dthandler = lambda obj: obj.isoformat(sep=' ') if isinstance(obj, datetime.datetime) else None
         content = json.dumps(list(cursor), default=dthandler)
         self.write_response(content)
         self.finish()

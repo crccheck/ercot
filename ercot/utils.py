@@ -1,3 +1,4 @@
+import datetime
 import re
 
 from dateutil import parser
@@ -32,3 +33,9 @@ def normalize_html(f):
     data = dict(guess_type(zip(labels, values)))
     data['timestamp'] = timestamp
     return data
+
+
+# http://stackoverflow.com/questions/455580/json-datetime-between-python-and-javascript
+def dthandler(obj):
+    """json.dumps handler that handles datetime."""
+    return obj.isoformat(sep=' ') if isinstance(obj, datetime.datetime) else None
