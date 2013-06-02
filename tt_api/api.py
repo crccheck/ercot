@@ -47,7 +47,8 @@ class BaseResource(tornado.web.RequestHandler):
             "Content-Type", "application/javascript; charset=UTF-8")
 
 
-class ErcotResource(BaseResource):
+class ErcotPGResource(BaseResource):
+    """Makes Postgres do the JSON."""
     @tornado.web.asynchronous
     def get(self):
         self.db.execute("""
@@ -65,7 +66,8 @@ class ErcotResource(BaseResource):
 # TODO synchronous request resource example
 
 
-class Ercot2Resource(BaseResource):
+class ErcotPyResource(BaseResource):
+    """Makes Python do the JSON."""
     @tornado.web.asynchronous
     def get(self):
         self.db.execute(self.sql, callback=self.on_result)
@@ -79,7 +81,8 @@ class Ercot2Resource(BaseResource):
         self.finish()
 
 
-class Ercot2bResource(BaseResource):
+class ErcotPsyResource(BaseResource):
+    """Makes Python do the JSON with psycopg2 making the dicts."""
     @tornado.web.asynchronous
     def get(self):
         self.db.execute(self.sql,
@@ -94,7 +97,8 @@ class Ercot2bResource(BaseResource):
         self.finish()
 
 
-class Ercot3Resource(BaseResource):
+class ErcotArrayResource(BaseResource):
+    """Makes Python do the JSON, Return arrays instead of dicts."""
     @tornado.web.asynchronous
     def get(self):
         self.db.execute(self.sql, callback=self.on_result)
@@ -126,10 +130,10 @@ def main():
 
     # Configure application
     app = tornado.web.Application([
-        (r'/', ErcotResource, ercot_kwargs),
-        (r'/2/', Ercot2Resource, ercot_kwargs),
-        (r'/2b/', Ercot2bResource, ercot_kwargs),
-        (r'/3/', Ercot3Resource, ercot_kwargs),
+        (r'/pg/', ErcotPGResource, ercot_kwargs),
+        (r'/py/', ErcotPyResource, ercot_kwargs),
+        (r'/psy/', ErcotPsyResource, ercot_kwargs),
+        (r'/array/', ErcotArrayResource, ercot_kwargs),
     ], debug=True)
 
     # Start server
