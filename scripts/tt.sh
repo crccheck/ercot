@@ -12,7 +12,6 @@ trap "kill $PID; echo bye $PID" EXIT
 sleep 1
 
 mkdir -p ../metrics
-ab -n 1000 http://localhost:8000/favicon.ico > ../metrics/tornado_404.log
 ab -n 1000 http://localhost:8000/ > ../metrics/tornado.log
 ab -n 1000 -c 2 http://localhost:8000/ > ../metrics/tornadox2.log
 # options:
