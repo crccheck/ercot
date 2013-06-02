@@ -1,26 +1,18 @@
 import os
 
 import momoko
-import simplejson as json
 import sqlalchemy
 import tornado.httpserver
 import tornado.ioloop
 import tornado.web
 
 
-class Resource(tornado.web.RequestHandler):
+class BaseResource(tornado.web.RequestHandler):
     def initialize(self, metadata=None):
         self.metadata = metadata
 
     def get(self):
-        meta = {}
-        object_list = self.get_object_list()
-        content = json.dumps({
-            'meta': meta,
-            'content': object_list
-        }, use_decimal=True)
-
-        self.write_response(content)
+        raise NotImplementedError
 
     def write_response(self, content):
         callback = self.get_argument('callback', '')
@@ -40,7 +32,7 @@ class Resource(tornado.web.RequestHandler):
             "Content-Type", "application/javascript; charset=UTF-8")
 
 
-class ErcotResource(Resource):
+class ErcotResource(BaseResource):
     def initialize(self, metadata, db):
         super(ErcotResource, self).initialize(metadata=metadata)
         self.db = db
