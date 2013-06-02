@@ -27,7 +27,7 @@ ab $AB_OPTIONS http://localhost:$PORT/py/ >> $OUTFILE
 ab $AB_OPTIONS http://localhost:$PORT/psy/ >> $OUTFILE
 ab $AB_OPTIONS http://localhost:$PORT/array/ >> $OUTFILE
 ab $AB_OPTIONS http://localhost:$PORT/array-sync/ >> $OUTFILE
-echo '</body></html>' >> $OUTFILE
+echo '</section></body></html>' >> $OUTFILE
 
 # kill server, run in a subprocess so we can suppress "Terminated" message
 (kill $PID 2>&1) > /dev/null
