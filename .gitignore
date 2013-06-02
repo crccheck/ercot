@@ -4,7 +4,8 @@
 *.pyc
 *.tgz
 download/
-metrics/
+metrics/*.log
+metrics/out.html
 
 
 # IDE
