@@ -20,17 +20,17 @@ class TestScraper(unittest.TestCase):
 
     def test_normalize_works(self):
         control = {
-            'Actual System Demand': 31579,
-            'Current Frequency': 59.962,
-            'DC_E': 0,
-            'DC_L': 100,
-            'DC_N': 25,
-            'DC_R': 151,
-            'DC_S': 0,
-            'Instantaneous Time Error': -2.562,
+            'total_system_capacity': 38322,
+            'actual_system_demand': 31579,
+            'total_wind_output': 5973,
+            'dc_e': 0,
+            'dc_l': 100,
+            'dc_n': 25,
+            'dc_r': 151,
+            'dc_s': 0,
+            'current_frequency': 59.962,
+            'instantaneous_time_error': -2.562,
             'timestamp': datetime.datetime(2012, 3, 29, 23, 9, 50),
-            'Total System Capacity': 38322,
-            'Total Wind Output': 5973,
         }
         with open('fixtures/test_download.html', 'r') as f:
             data = scrape.normalize_html(f)
