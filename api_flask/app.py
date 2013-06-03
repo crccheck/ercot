@@ -1,5 +1,6 @@
 from functools import wraps
 import json
+import sys
 
 from flask import Flask, request
 import psycopg2
@@ -81,8 +82,15 @@ if __name__ == '__main__':
     sql = ("SELECT %s FROM ercot_realtime ORDER BY timestamp LIMIT 2016"
             % ', '.join(columns))
 
+    port = 8000
+    if len(sys.argv) == 2:
+        try:
+            port = int(sys.argv[1])
+        except ValueError:
+            pass
+
     app.run(
         host='0.0.0.0',
-        port=8000,
+        port=port,
         debug=True,
     )
