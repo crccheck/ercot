@@ -1,7 +1,7 @@
 set -e
 
 PORT=8008
-AB_OPTIONS='-n 100'
+AB_OPTIONS='-n 1000 -c 1'
 # options:
 #
 #   -n requests

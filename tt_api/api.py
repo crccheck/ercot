@@ -18,10 +18,9 @@ class BaseResource(tornado.web.RequestHandler):
         'actual_system_demand',
         'total_system_capacity',
     )
-    sql = """
-        SELECT %s
-        FROM ercot_realtime ORDER BY timestamp LIMIT 8640
-    """ % ', '.join(columns)
+    # 2016 = 14 days / 10 minutes
+    sql = ("SELECT %s FROM ercot_realtime ORDER BY timestamp LIMIT 2016"
+            % ', '.join(columns))
 
     def initialize(self, db, metadata=None):
         self.db = db
