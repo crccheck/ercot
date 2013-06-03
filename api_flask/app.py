@@ -1,25 +1,16 @@
 from functools import wraps
+import json
+import sys
 
 from flask import Flask, request
-import dj_database_url
 import psycopg2
+import psycopg2.extras
 
-from middlewares import Gzipper
+# from middlewares import Gzipper
+from ercot.utils import dthandler, get_pg_connect_kwargs
 
 
 app = Flask(__name__)
-app.wsgi_app = Gzipper(app.wsgi_app)
-config = dj_database_url.config(default="postgres:///ercot")
-config_map = dict(
-    NAME='database',
-    USER='user',
-    PASSWORD='password',
-    HOST='host',
-    PORT='port',
-)
-connect_args = dict([(config_map[k], v) for k, v in config.items()
-        if k in config_map])
-conn = psycopg2.connect(**connect_args)
 
 
 # https://gist.github.com/aisipos/1094140
@@ -39,48 +30,70 @@ def support_jsonp(f):
     return decorated_function
 
 
-@app.route('/')
+@app.route('/pg/')
 @support_jsonp
-def hello_world():
+def pg_resource():
     cur = conn.cursor()
-    n_results = 86400 / 10
     # http://blog.hashrocket.com/posts/faster-json-generation-with-postgresql
     cur.execute("""
         SELECT array_to_json(array_agg(row_to_json(t)))::text FROM (
-            SELECT timestamp, "Actual System Demand", "Total System Capacity"
-            FROM ercot_realtime ORDER BY timestamp LIMIT %s
+            %s
         ) t;
-        """, (n_results, ))
+        """ % sql)
     return app.response_class(
         cur.fetchone()[0],
         mimetype="application/json",
     )
 
 
-# This is slow mostly because I suck at this
-@app.route('/slow/')
+@app.route('/py/')
 @support_jsonp
-def goodbye_cruel_world():
-    import datetime
-    import json
-    # http://stackoverflow.com/questions/455580/json-datetime-between-python-and-javascript
-    dthandler = lambda obj: obj.isoformat(sep=' ') if isinstance(obj, datetime.datetime) else None
+def py_resource():
     cur = conn.cursor()
-    n_results = 86400 / 10
-    cur.execute("""
-        SELECT timestamp, "Actual System Demand", "Total System Capacity"
-        FROM ercot_realtime ORDER BY timestamp LIMIT %s
-        """, (n_results, ))
+    cur.execute(sql)
     return app.response_class(
-        json.dumps([dict(zip(('timestamp', 'Actual System Demand', 'Total System Capacity'), x)) for x in cur],
-                default=dthandler),
+        json.dumps([dict(zip(columns, x)) for x in cur], default=dthandler),
         mimetype="application/json",
     )
 
 
+@app.route('/psy/')
+@support_jsonp
+def psy_resource():
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    # cursor = conn.cursor(cursor_factory=extras.RealDictCursor)
+    cursor.execute(sql)
+    return app.response_class(
+        json.dumps(list(cursor), default=dthandler),
+        mimetype="application/json",
+    )
+
+
+# app.wsgi_app = Gzipper(app.wsgi_app)
+conn = psycopg2.connect(**get_pg_connect_kwargs('postgres:///ercot'))
+
+columns = (
+    'timestamp',
+    'actual_system_demand',
+    'total_system_capacity',
+)
+# 2016 = 14 days / 10 minutes
+sql = ("SELECT %s FROM ercot_realtime ORDER BY timestamp LIMIT 2016"
+        % ', '.join(columns))
+
 if __name__ == '__main__':
+    port = 8000
+    debug = True
+    if len(sys.argv) == 2:
+        try:
+            port = int(sys.argv[1])
+            debug = False
+        except ValueError:
+            pass
+
+    app.debug = False
     app.run(
         host='0.0.0.0',
-        port=8000,
-        debug=True,
+        port=port,
+        debug=debug,
     )
