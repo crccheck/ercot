@@ -69,28 +69,31 @@ def psy_resource():
     )
 
 
+# app.wsgi_app = Gzipper(app.wsgi_app)
+conn = psycopg2.connect(**get_pg_connect_kwargs('postgres:///ercot'))
+
+columns = (
+    'timestamp',
+    'actual_system_demand',
+    'total_system_capacity',
+)
+# 2016 = 14 days / 10 minutes
+sql = ("SELECT %s FROM ercot_realtime ORDER BY timestamp LIMIT 2016"
+        % ', '.join(columns))
+
 if __name__ == '__main__':
-    # app.wsgi_app = Gzipper(app.wsgi_app)
-    conn = psycopg2.connect(**get_pg_connect_kwargs('postgres:///ercot'))
-
-    columns = (
-        'timestamp',
-        'actual_system_demand',
-        'total_system_capacity',
-    )
-    # 2016 = 14 days / 10 minutes
-    sql = ("SELECT %s FROM ercot_realtime ORDER BY timestamp LIMIT 2016"
-            % ', '.join(columns))
-
     port = 8000
+    debug = True
     if len(sys.argv) == 2:
         try:
             port = int(sys.argv[1])
+            debug = False
         except ValueError:
             pass
 
+    app.debug = False
     app.run(
         host='0.0.0.0',
         port=port,
-        debug=True,
+        debug=debug,
     )
